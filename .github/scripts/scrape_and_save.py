@@ -15,18 +15,32 @@ INGEST_URL = os.environ.get('INGEST_URL', '')
 INGEST_KEY = os.environ.get('INGEST_KEY', '')
 
 KEYWORDS = [
+    # Digital products Morocco — your competitors
+    {'keyword': 'compte Netflix Maroc', 'country': 'MA'},
+    {'keyword': 'abonnement Netflix Maroc', 'country': 'MA'},
     {'keyword': 'Netflix Maroc', 'country': 'MA'},
-    {'keyword': 'Spotify Maroc', 'country': 'MA'},
+    {'keyword': 'compte Spotify Maroc', 'country': 'MA'},
+    {'keyword': 'abonnement Spotify Maroc', 'country': 'MA'},
     {'keyword': 'ChatGPT Maroc', 'country': 'MA'},
-    {'keyword': 'IPTV Maroc', 'country': 'MA'},
-    {'keyword': 'iPhone Maroc', 'country': 'MA'},
+    {'keyword': 'compte ChatGPT Maroc', 'country': 'MA'},
     {'keyword': 'Gemini Maroc', 'country': 'MA'},
-    {'keyword': 'Netflix France', 'country': 'FR'},
-    {'keyword': 'Spotify France', 'country': 'FR'},
+    {'keyword': 'IPTV Maroc', 'country': 'MA'},
+    {'keyword': 'abonnement IPTV Maroc', 'country': 'MA'},
+    {'keyword': 'comptes digitaux Maroc', 'country': 'MA'},
+    {'keyword': 'اشتراك نتفليكس المغرب', 'country': 'MA'},
+    # France
+    {'keyword': 'compte Netflix France', 'country': 'FR'},
+    {'keyword': 'abonnement Netflix France', 'country': 'FR'},
+    {'keyword': 'compte Spotify France', 'country': 'FR'},
+    {'keyword': 'ChatGPT France', 'country': 'FR'},
+    # Saudi Arabia
     {'keyword': 'Netflix Saudi', 'country': 'SA'},
+    {'keyword': 'اشتراك نتفليكس السعودية', 'country': 'SA'},
     {'keyword': 'IPTV Saudi', 'country': 'SA'},
-    {'keyword': 'Netflix Algeria', 'country': 'DZ'},
-    {'keyword': 'ChatGPT', 'country': 'MA'},
+    # Algeria
+    {'keyword': 'Netflix Algérie', 'country': 'DZ'},
+    {'keyword': 'compte Netflix Algerie', 'country': 'DZ'},
+    {'keyword': 'ChatGPT Algerie', 'country': 'DZ'},
 ]
 
 def calc_spend(days):
