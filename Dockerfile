@@ -12,4 +12,4 @@ RUN python -m playwright install chromium
 RUN python -m playwright install-deps chromium
 COPY . .
 EXPOSE 5000
-CMD ["python", "api_server.py"]
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-5000} --workers 1 --threads 2 --timeout 180 api_server:app"]

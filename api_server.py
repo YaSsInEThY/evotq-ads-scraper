@@ -93,7 +93,7 @@ def normalize_tiktok(item, country):
 
 @app.route("/health", methods=["GET"])
 def health():
-    return jsonify({"status": "ok", "service": "fb-ads-scraper", "version": "2.0"})
+    return jsonify({"status": "ok", "service": "ads-scraper", "version": "2.0"})
 
 
 @app.route("/scrape", methods=["POST"])
