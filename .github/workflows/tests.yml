@@ -63,7 +63,7 @@ jobs:
       - name: Build the image
         run: docker build -t facebook-ads-scraper:ci .
       - name: Entrypoint runs (the CMD a missing module would break)
-        run: docker run --rm facebook-ads-scraper:ci
+        run: docker run --rm --entrypoint python facebook-ads-scraper:ci -c "from api_server import app; assert app.test_client().get('/health').status_code == 200"
       - name: A real browser actually launches inside the image
         run: |
           docker run --rm --entrypoint python3 facebook-ads-scraper:ci -c "

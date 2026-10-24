@@ -10,7 +10,12 @@ on:
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    concurrency:
+      group: evotq-ad-collection
+      cancel-in-progress: false
 
     steps:
       - name: Checkout
@@ -32,3 +37,12 @@ jobs:
           INGEST_URL: ${{ secrets.INGEST_URL }}
           INGEST_KEY: ${{ secrets.INGEST_KEY }}
         run: python .github/scripts/scrape_and_save.py
+
+      - name: Save collection report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: collection-report
+          path: collection-report.json
+          if-no-files-found: ignore
+          retention-days: 7

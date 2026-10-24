@@ -1,207 +1,77 @@
-"""
-GitHub Actions scraper script.
-Runs playwright_scraper.py for each keyword, collects results,
-then POSTs them to the Cloudflare Worker ingest endpoint.
-"""
-
-import subprocess
+"""Scheduled public Ad Library collection with query and brand provenance."""
 import json
 import os
 import sys
+from datetime import datetime, timezone
+from pathlib import Path
 import requests
-from datetime import datetime
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from research_collector import collect
 
-INGEST_URL = os.environ.get('INGEST_URL', '')
-INGEST_KEY = os.environ.get('INGEST_KEY', '')
+KEYWORDS = [{'keyword': 'compte Netflix Maroc', 'brand': 'Netflix', 'country': 'MA'},
+ {'keyword': 'abonnement Netflix Maroc', 'brand': 'Netflix', 'country': 'MA'},
+ {'keyword': 'Netflix 4K Maroc', 'brand': 'Netflix', 'country': 'MA'},
+ {'keyword': 'Netflix premium Maroc', 'brand': 'Netflix', 'country': 'MA'},
+ {'keyword': 'compte Spotify Maroc', 'brand': 'Spotify', 'country': 'MA'},
+ {'keyword': 'abonnement Spotify Maroc', 'brand': 'Spotify', 'country': 'MA'},
+ {'keyword': 'ChatGPT Maroc', 'brand': 'ChatGPT', 'country': 'MA'},
+ {'keyword': 'compte ChatGPT Maroc', 'brand': 'ChatGPT', 'country': 'MA'},
+ {'keyword': 'abonnement ChatGPT Maroc', 'brand': 'ChatGPT', 'country': 'MA'},
+ {'keyword': 'Gemini Maroc', 'brand': 'Gemini', 'country': 'MA'},
+ {'keyword': 'IPTV Maroc', 'brand': 'IPTV', 'country': 'MA'},
+ {'keyword': 'abonnement IPTV Maroc', 'brand': 'IPTV', 'country': 'MA'},
+ {'keyword': 'اشتراك نتفليكس المغرب', 'brand': 'Netflix', 'country': 'MA'},
+ {'keyword': 'اشتراك سبوتيفاي المغرب', 'brand': 'Spotify', 'country': 'MA'},
+ {'keyword': 'compte Netflix France', 'brand': 'Netflix', 'country': 'FR'},
+ {'keyword': 'abonnement Netflix France', 'brand': 'Netflix', 'country': 'FR'},
+ {'keyword': 'compte Spotify France', 'brand': 'Spotify', 'country': 'FR'},
+ {'keyword': 'ChatGPT France', 'brand': 'ChatGPT', 'country': 'FR'},
+ {'keyword': 'Netflix Saudi', 'brand': 'Netflix', 'country': 'SA'},
+ {'keyword': 'IPTV Saudi', 'brand': 'IPTV', 'country': 'SA'},
+ {'keyword': 'اشتراك نتفليكس السعودية', 'brand': 'Netflix', 'country': 'SA'}]
 
-KEYWORDS = [
-    # Digital products Morocco — your competitors
-    {'keyword': 'compte Netflix Maroc', 'country': 'MA'},
-    {'keyword': 'abonnement Netflix Maroc', 'country': 'MA'},
-    {'keyword': 'Netflix Maroc', 'country': 'MA'},
-    {'keyword': 'compte Spotify Maroc', 'country': 'MA'},
-    {'keyword': 'abonnement Spotify Maroc', 'country': 'MA'},
-    {'keyword': 'ChatGPT Maroc', 'country': 'MA'},
-    {'keyword': 'compte ChatGPT Maroc', 'country': 'MA'},
-    {'keyword': 'Gemini Maroc', 'country': 'MA'},
-    {'keyword': 'IPTV Maroc', 'country': 'MA'},
-    {'keyword': 'abonnement IPTV Maroc', 'country': 'MA'},
-    {'keyword': 'comptes digitaux Maroc', 'country': 'MA'},
-    {'keyword': 'اشتراك نتفليكس المغرب', 'country': 'MA'},
-    # France
-    {'keyword': 'compte Netflix France', 'country': 'FR'},
-    {'keyword': 'abonnement Netflix France', 'country': 'FR'},
-    {'keyword': 'compte Spotify France', 'country': 'FR'},
-    {'keyword': 'ChatGPT France', 'country': 'FR'},
-    # Saudi Arabia
-    {'keyword': 'Netflix Saudi', 'country': 'SA'},
-    {'keyword': 'اشتراك نتفليكس السعودية', 'country': 'SA'},
-    {'keyword': 'IPTV Saudi', 'country': 'SA'},
-    # Algeria
-    {'keyword': 'Netflix Algérie', 'country': 'DZ'},
-    {'keyword': 'compte Netflix Algerie', 'country': 'DZ'},
-    {'keyword': 'ChatGPT Algerie', 'country': 'DZ'},
-]
+def save_to_database(ads, search_query, brand):
+    saved = 0
+    for offset in range(0, len(ads), 50):
+        batch = ads[offset:offset + 50]
+        response = requests.post(os.environ['INGEST_URL'],
+            json={'ads': batch, 'searchQuery': search_query, 'brand': brand},
+            headers={'x-ingest-key': os.environ['INGEST_KEY']}, timeout=45)
+        if not response.ok:
+            raise RuntimeError(f'Database rejected collection: HTTP {response.status_code}')
+        count = response.json().get('saved', 0)
+        if count != len(batch):
+            raise RuntimeError(f'Database accepted only {count} of {len(batch)} records')
+        saved += count
+    return saved
 
-def calc_spend(days):
-    base = 10
-    mult = 1 if days <= 7 else 2 if days <= 30 else 3 if days <= 90 else 4
-    low = round(base * mult)
-    high = round(base * mult * 2.5)
-    return f"${low}–${high}/day est.", low, high
-
-def normalize(item, country):
-    start = item.get('first_shown_at') or ''
-    days = int(item.get('days_shown') or 0)
-    if not days and start:
-        try:
-            days = max(0, (datetime.now() - datetime.strptime(start[:10], '%Y-%m-%d')).days)
-        except:
-            pass
-
-    perf = ('evergreen' if days > 180 else 'scaling' if days > 90 else
-            'profitable' if days > 30 else 'working' if days > 7 else 'testing')
-    spend_str, spend_low, spend_high = calc_spend(days)
-
-    try:
-        platforms = json.loads(item.get('platforms_json') or '["facebook"]')
-    except:
-        platforms = ['facebook']
-
-    try:
-        img_urls = json.loads(item.get('image_urls_json') or '[]')
-    except:
-        img_urls = []
-
-    image = item.get('image_url') or (img_urls[0] if img_urls else '')
-    ad_id = item.get('ad_id') or item.get('sku', '').replace('facebook-ad-', '')
-
-    return {
-        'id': f"meta-{item.get('sku') or ad_id}",
-        'source': 'Meta Ad Library',
-        'platforms': [p.lower() for p in platforms],
-        'advertiser': item.get('advertiser_name') or 'Facebook Advertiser',
-        'pageName': item.get('advertiser_name') or '',
-        'pageId': str(item.get('advertiser_page_id') or ''),
-        'text': item.get('body') or '',
-        'title': item.get('title') or item.get('link_title') or '',
-        'originalUrl': item.get('product_url') or f"https://www.facebook.com/ads/library/?id={ad_id}",
-        'image': image,
-        'snapshotUrl': image,
-        'startDate': f"{start}T00:00:00Z" if start and 'T' not in str(start) else str(start),
-        'endDate': '',
-        'active': item.get('is_active', True),
-        'daysRunning': days,
-        'countries': [country],
-        'spend': spend_str,
-        'spendLow': spend_low,
-        'spendHigh': spend_high,
-        'impressionsLower': 0,
-        'impressionsUpper': 0,
-        'engagementScore': None,
-        'performance': perf,
-        'ctaText': item.get('cta_text') or '',
-        'linkUrl': item.get('link_url') or '',
-        'advertiserLikes': item.get('advertiser_likes') or 0,
-        'displayFormat': item.get('display_format') or 'IMAGE',
-    }
-
-def scrape_keyword(keyword, country, max_results=20):
-    region_map = {
-        'MA': 'MA', 'FR': 'FR', 'BE': 'BE', 'SA': 'SA',
-        'AE': 'AE', 'DZ': 'DZ', 'TN': 'TN'
-    }
-    region = region_map.get(country, 'MA')
-
-    cmd = [
-        sys.executable, 'playwright_scraper.py',
-        '--query', keyword,
-        '--region', region,
-        '--max-results', str(max_results),
-        '--format', 'json',
-        '--active-status', 'all',
-    ]
-
-    print(f"  Scraping: {keyword} ({country})")
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=90)
-        output_file = 'facebook_ads.json'
-        if os.path.exists(output_file):
-            with open(output_file, 'r', encoding='utf-8') as f:
-                raw = json.load(f)
-            items = raw if isinstance(raw, list) else raw.get('data', [])
-            ads = [normalize(item, country) for item in items]
-            print(f"  Found {len(ads)} ads")
-            return ads
-        print(f"  No output file")
-    except subprocess.TimeoutExpired:
-        print(f"  Timeout")
-    except Exception as e:
-        print(f"  Error: {e}")
-    return []
-
-def save_to_database(ads):
-    if not ads:
-        return 0
-    if not INGEST_URL or not INGEST_KEY:
-        print("  WARNING: INGEST_URL or INGEST_KEY not set")
-        return 0
-    try:
-        response = requests.post(
-            INGEST_URL,
-            json={'ads': ads},
-            headers={
-                'Content-Type': 'application/json',
-                'x-ingest-key': INGEST_KEY,
-            },
-            timeout=30
-        )
-        if response.ok:
-            data = response.json()
-            saved = data.get('saved', len(ads))
-            print(f"  Saved {saved} ads to database")
-            return saved
-        else:
-            print(f"  Database error: {response.status_code} {response.text[:100]}")
-    except Exception as e:
-        print(f"  Database save failed: {e}")
-    return 0
 
 def main():
-    print(f"Starting scrape at {datetime.now().isoformat()}")
-    print(f"Keywords: {len(KEYWORDS)}")
-    print(f"Ingest URL: {INGEST_URL[:40]}..." if INGEST_URL else "WARNING: No ingest URL")
-
-    total_scraped = 0
-    total_saved = 0
-    all_ads = []
-
+    if not os.environ.get('INGEST_URL') or not os.environ.get('INGEST_KEY'):
+        raise SystemExit('Missing INGEST_URL or INGEST_KEY. Nothing was scraped or saved.')
+    summary = []
     for item in KEYWORDS:
-        keyword = item['keyword']
-        country = item['country']
-        ads = scrape_keyword(keyword, country)
-        all_ads.extend(ads)
-        total_scraped += len(ads)
+        print(f"Collecting {item['keyword']} [{item['country']}]", flush=True)
+        result = collect(item['keyword'], item['country'], item['brand'])
+        saved = 0
+        try:
+            saved = save_to_database(result['ads'], item['keyword'], item['brand'])
+        except (requests.RequestException, RuntimeError) as error:
+            result = {**result, 'status': 'ingest_failed', 'error': type(error).__name__}
+        row = {**item, 'status': result['status'], 'found': len(result['ads']), 'saved': saved, 'error': result.get('error', '')}
+        summary.append(row)
+        print(json.dumps(row, ensure_ascii=False), flush=True)
+    report = {'at': datetime.now(timezone.utc).isoformat(), 'queries': summary, 'saved': sum(row['saved'] for row in summary)}
+    Path('collection-report.json').write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8')
+    if os.environ.get('GITHUB_STEP_SUMMARY'):
+        with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as out:
+            out.write('## Collection results\n\n| Search | Country | Status | Saved |\n|---|---|---|---|\n')
+            for row in summary:
+                out.write(f"| {row['keyword']} | {row['country']} | {row['status']} | {row['saved']} |\n")
+    print(f"Saved {report['saved']} observations. Empty searches are not filled with previous results.", flush=True)
+    if any(row['status'] in ('failed', 'timeout', 'ingest_failed') for row in summary):
+        raise SystemExit(1)
 
-    # Deduplicate by ID
-    seen = set()
-    unique_ads = []
-    for ad in all_ads:
-        if ad['id'] not in seen:
-            seen.add(ad['id'])
-            unique_ads.append(ad)
-
-    print(f"\nTotal scraped: {total_scraped}")
-    print(f"Unique ads: {len(unique_ads)}")
-
-    # Save in batches of 50
-    for i in range(0, len(unique_ads), 50):
-        batch = unique_ads[i:i+50]
-        saved = save_to_database(batch)
-        total_saved += saved
-
-    print(f"Total saved to database: {total_saved}")
-    print(f"Done at {datetime.now().isoformat()}")
 
 if __name__ == '__main__':
     main()

@@ -12,6 +12,8 @@ license = { text = "MIT" }
 dependencies = [
     "beautifulsoup4>=4.12",
     "requests>=2.31",
+    "flask",
+    "flask-cors",
 ]
 
 [project.optional-dependencies]
@@ -30,6 +32,8 @@ Repository = "https://github.com/2scraper/facebook-ads-scraper"
 # installs requirements.txt directly, so drift here goes unnoticed there.
 py-modules = [
     "env_config",
+    "research_collector",
+    "api_server",
     "proxy_pool",
     "proxy_meter",
     "output_writer",
