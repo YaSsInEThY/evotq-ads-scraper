@@ -17,18 +17,24 @@ KEYWORDS = [
     {'keyword': 'Netflix premium Maroc', 'brand': 'Netflix', 'country': 'MA'},
     {'keyword': 'vente compte Netflix', 'brand': 'Netflix', 'country': 'MA'},
     {'keyword': 'Netflix pas cher Maroc', 'brand': 'Netflix', 'country': 'MA'},
+    {'keyword': 'netflix 4k maroc', 'brand': 'Netflix', 'country': 'MA'},
+    {'keyword': 'netflix maroc prix', 'brand': 'Netflix', 'country': 'MA'},
+    {'keyword': 'نتفليكس المغرب', 'brand': 'Netflix', 'country': 'MA'},
+    {'keyword': 'اشتراك نتفلكس', 'brand': 'Netflix', 'country': 'MA'},
 
     # Spotify Morocco
     {'keyword': 'compte Spotify Maroc', 'brand': 'Spotify', 'country': 'MA'},
     {'keyword': 'abonnement Spotify Maroc', 'brand': 'Spotify', 'country': 'MA'},
     {'keyword': 'Spotify premium Maroc', 'brand': 'Spotify', 'country': 'MA'},
     {'keyword': 'vente compte Spotify', 'brand': 'Spotify', 'country': 'MA'},
+    {'keyword': 'سبوتيفاي المغرب', 'brand': 'Spotify', 'country': 'MA'},
 
     # ChatGPT Morocco
     {'keyword': 'ChatGPT Maroc', 'brand': 'ChatGPT', 'country': 'MA'},
     {'keyword': 'compte ChatGPT Maroc', 'brand': 'ChatGPT', 'country': 'MA'},
     {'keyword': 'abonnement ChatGPT Maroc', 'brand': 'ChatGPT', 'country': 'MA'},
     {'keyword': 'ChatGPT pas cher Maroc', 'brand': 'ChatGPT', 'country': 'MA'},
+    {'keyword': 'تشات جي بي تي المغرب', 'brand': 'ChatGPT', 'country': 'MA'},
 
     # Gemini Morocco
     {'keyword': 'Gemini Maroc', 'brand': 'Gemini', 'country': 'MA'},
@@ -39,6 +45,8 @@ KEYWORDS = [
     {'keyword': 'IPTV Maroc', 'brand': 'IPTV', 'country': 'MA'},
     {'keyword': 'abonnement IPTV Maroc', 'brand': 'IPTV', 'country': 'MA'},
     {'keyword': 'IPTV abonnement Maroc', 'brand': 'IPTV', 'country': 'MA'},
+    {'keyword': 'iptv premium maroc', 'brand': 'IPTV', 'country': 'MA'},
+    {'keyword': 'iptv maroc 2025', 'brand': 'IPTV', 'country': 'MA'},
 
     # Digital products Morocco (general)
     {'keyword': 'comptes digitaux Maroc', 'brand': 'Digital', 'country': 'MA'},
@@ -61,11 +69,23 @@ KEYWORDS = [
 
     # Canada
     {'keyword': 'compte Netflix Canada', 'brand': 'Netflix', 'country': 'CA'},
+    {'keyword': 'abonnement Netflix Canada', 'brand': 'Netflix', 'country': 'CA'},
     {'keyword': 'Netflix Canada cheap', 'brand': 'Netflix', 'country': 'CA'},
+    {'keyword': 'Netflix account Canada cheap', 'brand': 'Netflix', 'country': 'CA'},
+    {'keyword': 'Netflix subscription Canada', 'brand': 'Netflix', 'country': 'CA'},
+    {'keyword': 'cheap Netflix Canada', 'brand': 'Netflix', 'country': 'CA'},
+    {'keyword': 'نتفليكس كندا', 'brand': 'Netflix', 'country': 'CA'},
     {'keyword': 'Spotify Canada cheap', 'brand': 'Spotify', 'country': 'CA'},
+    {'keyword': 'Spotify premium Canada cheap', 'brand': 'Spotify', 'country': 'CA'},
+    {'keyword': 'Spotify account Canada', 'brand': 'Spotify', 'country': 'CA'},
     {'keyword': 'ChatGPT Canada', 'brand': 'ChatGPT', 'country': 'CA'},
+    {'keyword': 'ChatGPT Plus Canada cheap', 'brand': 'ChatGPT', 'country': 'CA'},
+    {'keyword': 'ChatGPT subscription Canada', 'brand': 'ChatGPT', 'country': 'CA'},
     {'keyword': 'IPTV Canada Arabic', 'brand': 'IPTV', 'country': 'CA'},
     {'keyword': 'IPTV Canada', 'brand': 'IPTV', 'country': 'CA'},
+    {'keyword': 'IPTV subscription Canada', 'brand': 'IPTV', 'country': 'CA'},
+    {'keyword': 'IPTV Arabic Canada', 'brand': 'IPTV', 'country': 'CA'},
+    {'keyword': 'اشتراك IPTV كندا', 'brand': 'IPTV', 'country': 'CA'},
     {'keyword': 'Netflix account Canada', 'brand': 'Netflix', 'country': 'CA'},
 
     # Saudi Arabia
