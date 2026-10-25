@@ -45,7 +45,13 @@ def normalize(item, country, brand='', query=''):
     }
 
 
-def collect(query, country, brand='', max_results=25, page_id='', active_only=False, timeout=90):
+def collect(query, country, brand='', max_results=50, page_id='', active_only=False, timeout=90):
+    region_map = {
+        'MA': 'MA', 'FR': 'FR', 'BE': 'BE', 'SA': 'SA',
+        'AE': 'AE', 'DZ': 'DZ', 'TN': 'TN', 'CA': 'CA',
+        'GB': 'GB', 'US': 'US', 'ALL': 'ALL',
+    }
+    country = region_map.get(str(country).upper(), 'ALL')
     with tempfile.TemporaryDirectory(prefix='evotq-research-') as temporary:
         output = Path(temporary) / 'ads.json'
         cmd = [sys.executable, str(ROOT / 'playwright_scraper.py'),
