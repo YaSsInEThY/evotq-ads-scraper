@@ -2,6 +2,7 @@
 import json
 import os
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 import requests
@@ -53,6 +54,12 @@ def main():
     for item in KEYWORDS:
         print(f"Collecting {item['keyword']} [{item['country']}]", flush=True)
         result = collect(item['keyword'], item['country'], item['brand'])
+        # Public-library pages occasionally time out or return a transient block.
+        # Retry once so one temporary failure does not leave a brand uncollected.
+        if result.get('status') in ('failed', 'timeout'):
+            print(f"Retrying {item['keyword']} after {result['status']}", flush=True)
+            time.sleep(3)
+            result = collect(item['keyword'], item['country'], item['brand'])
         saved = 0
         try:
             saved = save_to_database(result['ads'], item['keyword'], item['brand'])
